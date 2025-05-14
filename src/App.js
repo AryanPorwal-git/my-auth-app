@@ -11,28 +11,37 @@ function App() {
   const [password, setPassword] = useState("");
   const [showCaptcha, setShowCaptcha] = useState(false);
   const [message, setMessage] = useState("");
+  const [userSession, setUserSession] = useState(null);
 
   const handleSignIn = async () => {
     setMessage("");
+    setShowCaptcha(false);
     try {
-      const response = await signIn({ username, password, options: { authFlowType: "CUSTOM_WITH_SRP" } });
-      if (response.challengeName === "CUSTOM_CHALLENGE") {
+      const { isSignedIn, nextStep, userId } = await signIn({ username, password });
+      setUserSession({ userId }); // Save userId for confirmSignIn if needed
+
+      if (nextStep.signInStep === "CONFIRM_SIGN_IN_WITH_CUSTOM_CHALLENGE") {
         setShowCaptcha(true);
-      } else {
+      } else if (nextStep.signInStep === "DONE" || isSignedIn) {
         setMessage("Signed in successfully!");
+      } else {
+        setMessage("Unexpected next step: " + nextStep.signInStep);
       }
     } catch (e) {
-      setMessage("Sign in failed: " + e.message);
+      setMessage("Sign in failed: " + (e.message || e));
     }
   };
 
   const handleCaptcha = async (token) => {
     try {
-      await confirmSignIn({ challengeResponse: token });
+      await confirmSignIn({
+        challengeResponse: token,
+        userId: userSession?.userId // Needed for Amplify v6+
+      });
       setMessage("Signed in successfully!");
       setShowCaptcha(false);
     } catch (e) {
-      setMessage("Captcha failed: " + e.message);
+      setMessage("Captcha failed: " + (e.message || e));
     }
   };
 
@@ -66,4 +75,5 @@ function App() {
 }
 
 export default App;
+
 
