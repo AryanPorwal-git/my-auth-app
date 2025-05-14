@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Amplify } from "aws-amplify";
-import { signIn, confirmSignIn } from "aws-amplify/auth";
+import { signIn, confirmSignIn, signOut } from "aws-amplify/auth";
 import amplifyconfig from "./amplifyconfiguration.json";
 import ReCAPTCHA from "react-google-recaptcha";
 
@@ -45,6 +45,19 @@ function App() {
     }
   };
 
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      setMessage("Signed out!");
+      setShowCaptcha(false);
+      setUsername("");
+      setPassword("");
+      setUserSession(null);
+    } catch (e) {
+      setMessage("Sign out failed: " + (e.message || e));
+    }
+  };
+
   return (
     <div style={{ maxWidth: 400, margin: "auto", padding: 20 }}>
       <h2>Sign In</h2>
@@ -63,6 +76,7 @@ function App() {
         style={{ width: "100%", marginBottom: 10 }}
       />
       <button onClick={handleSignIn} style={{ width: "100%", marginBottom: 10 }}>Sign In</button>
+      <button onClick={handleSignOut} style={{ width: "100%", marginBottom: 10 }}>Sign Out</button>
       {showCaptcha && (
         <ReCAPTCHA
           sitekey="6Lc7gDkrAAAAANyQMgrHYvyGMNtz47kWGkRsdEBV"
@@ -75,5 +89,3 @@ function App() {
 }
 
 export default App;
-
-
